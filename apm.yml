@@ -1,0 +1,9 @@
+name: azure-servicebus-tools
+version: 1.0.0
+description: APM project for azure-servicebus-tools
+author: Christian Grønbæk Jørgensen
+dependencies:
+  apm: []
+  mcp: []
+includes: auto
+scripts: {}

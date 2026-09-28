@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>asbctl</AssemblyName>
+    <RootNamespace>Cjoergensen.Azure.ServiceBus.Tools.Asbctl</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>asbctl</ToolCommandName>
+    <PackageId>Cjoergensen.Azure.ServiceBus.Tools.Asbctl</PackageId>
+    <Authors>cjoergensen</Authors>
+    <Description>Command-line toolbox for Azure Service Bus operational tasks.</Description>
+    <PackageTags>azure;servicebus;cli;operations;asbctl</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/cjoergensen/azure-servicebus-tools</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cjoergensen/azure-servicebus-tools</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.21.0" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+    <PackageReference Include="FluentResults" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

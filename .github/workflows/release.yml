@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Pack and release asbctl
+    runs-on: ubuntu-latest
+    env:
+      NUGET_SOURCE: https://api.nuget.org/v3/index.json
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "package_version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore ./src
+
+      - name: Build
+        run: dotnet build ./src --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test ./src --no-restore --configuration Release --filter "Category!=Integration"
+
+      - name: Run integration tests
+        run: dotnet test ./src --no-restore --configuration Release --filter "Category=Integration"
+
+      - name: Pack .NET tool
+        run: |
+          mkdir -p artifacts/nuget
+          dotnet pack ./src/Azure.ServiceBus.Tools.Asbctl/Azure.ServiceBus.Tools.Asbctl.csproj \
+            --configuration Release \
+            --no-build \
+            --output artifacts/nuget \
+            /p:PackageVersion=${{ steps.version.outputs.package_version }}
+
+      - name: Publish package to NuGet
+        if: ${{ env.NUGET_API_KEY != '' }}
+        run: dotnet nuget push "artifacts/nuget/*.nupkg" --source "${NUGET_SOURCE}" --api-key "${NUGET_API_KEY}" --skip-duplicate
+
+      - name: Publish runtime binaries
+        run: |
+          mkdir -p artifacts/releases
+          for rid in linux-x64 linux-arm64 win-x64 osx-x64 osx-arm64; do
+            out_dir="artifacts/releases/asbctl-${rid}"
+            dotnet publish ./src/Azure.ServiceBus.Tools.Asbctl/Azure.ServiceBus.Tools.Asbctl.csproj \
+              --configuration Release \
+              --no-build \
+              -r "${rid}" \
+              --self-contained true \
+              /p:PublishSingleFile=true \
+              /p:IncludeNativeLibrariesForSelfExtract=true \
+              -o "${out_dir}"
+            (cd artifacts/releases && zip -rq "asbctl-${rid}.zip" "asbctl-${rid}")
+          done
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            artifacts/nuget/*.nupkg
+            artifacts/releases/*.zip
